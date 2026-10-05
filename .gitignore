@@ -1,0 +1,29 @@
+# ---- Personal / commercially sensitive data: NEVER commit ----
+# Raw pulls (names, emails, phone numbers, usage by person)
+fact_user_events.csv
+usage_by_user_raw.json
+dim_pseudo_users.json
+au_users.json
+au_portfolios.json
+commercial_team_raw.txt
+daily_data.json
+# HR info (who is on leave)
+leave_notes.json
+# Built pages (contain named individuals + emails)
+*_output.html
+# Unrelated commercial documents that happen to live in this folder
+bizcase.txt
+vision.txt
+
+# Credentials, in case anyone ever drops one here
+.env
+.env.*
+*.json.key
+*-key.json
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.pyc
+.venv/

@@ -1,0 +1,5 @@
+# Keep personal data, outputs and git history out of the image build context.
+*
+!requirements.txt
+!*.py
+!*_template.html

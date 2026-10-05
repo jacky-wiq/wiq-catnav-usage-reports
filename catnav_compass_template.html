@@ -1,0 +1,1817 @@
+<title>CatNav Compass</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #EEF3F1;
+    --surface: #FCFCFB;
+    --surface-raised: #FFFFFF;
+    --ink: #0B1615;
+    --ink-secondary: #45514F;
+    --ink-muted: #79867F;
+    --border: rgba(11, 22, 21, 0.10);
+    --border-strong: rgba(11, 22, 21, 0.16);
+    --grid: #DEE6E3;
+    --baseline: #C7D2CE;
+    --accent: #0D6459;
+    --accent-ink: #0A4A42;
+    --accent-tint: #E3EFEC;
+    --accent-tint-strong: #CDE4DF;
+    --data: #12786C;
+    --data-soft: rgba(18, 120, 108, 0.12);
+    --heat-lo: #E3EFEC;
+    --heat-hi: #0B4B43;
+    --cell-ink-hi: #FBFFFE;
+    --shadow: 0 1px 2px rgba(11, 22, 21, 0.06), 0 8px 24px -12px rgba(11, 22, 21, 0.18);
+
+    --cat-1: #2a78d6; --cat-2: #eb6834; --cat-3: #1baf7a; --cat-4: #eda100;
+    --cat-5: #e87ba4; --cat-6: #008300; --cat-7: #4a3aa7; --cat-8: #e34948;
+    --cat-muted: #A9B3AF;
+
+    --font-display: "American Typewriter", Rockwell, "Roboto Slab", Georgia, "Noto Serif", serif;
+    --font-body: "Avenir Next", "Century Gothic", "Segoe UI", system-ui, -apple-system, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #0A1312;
+      --surface: #141D1B;
+      --surface-raised: #182220;
+      --ink: #F4FAF9;
+      --ink-secondary: #C3D0CD;
+      --ink-muted: #86928F;
+      --border: rgba(255, 255, 255, 0.09);
+      --border-strong: rgba(255, 255, 255, 0.16);
+      --grid: #263230;
+      --baseline: #37423F;
+      --accent: #3FC2AF;
+      --accent-ink: #7FE0CB;
+      --accent-tint: #17302C;
+      --accent-tint-strong: #1D3D37;
+      --data: #2FC2AE;
+      --data-soft: rgba(47, 194, 174, 0.16);
+      --heat-lo: #17302C;
+      --heat-hi: #7FE0CB;
+      --cell-ink-hi: #08211D;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+
+      --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500;
+      --cat-5: #d55181; --cat-6: #008300; --cat-7: #9085e9; --cat-8: #e66767;
+      --cat-muted: #5C6663;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0A1312;
+    --surface: #141D1B;
+    --surface-raised: #182220;
+    --ink: #F4FAF9;
+    --ink-secondary: #C3D0CD;
+    --ink-muted: #86928F;
+    --border: rgba(255, 255, 255, 0.09);
+    --border-strong: rgba(255, 255, 255, 0.16);
+    --grid: #263230;
+    --baseline: #37423F;
+    --accent: #3FC2AF;
+    --accent-ink: #7FE0CB;
+    --accent-tint: #17302C;
+    --accent-tint-strong: #1D3D37;
+    --data: #2FC2AE;
+    --data-soft: rgba(47, 194, 174, 0.16);
+    --heat-lo: #17302C;
+    --heat-hi: #7FE0CB;
+    --cell-ink-hi: #08211D;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+
+    --cat-1: #3987e5; --cat-2: #d95926; --cat-3: #199e70; --cat-4: #c98500;
+    --cat-5: #d55181; --cat-6: #008300; --cat-7: #9085e9; --cat-8: #e66767;
+    --cat-muted: #5C6663;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    padding: 32px 20px 64px;
+  }
+
+  .page {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  /* ---------- Header ---------- */
+
+  .masthead {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border-strong);
+    padding-bottom: 20px;
+  }
+
+  .masthead-left { display: flex; align-items: center; gap: 14px; }
+
+  .compass-mark {
+    width: 42px;
+    height: 42px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--accent-tint);
+    border: 1px solid var(--border-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .compass-mark svg { width: 22px; height: 22px; }
+
+  .masthead h1 {
+    font-family: var(--font-display);
+    font-size: 27px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    margin: 0 0 2px;
+    text-wrap: balance;
+  }
+
+  .masthead .subtitle {
+    margin: 0;
+    color: var(--ink-secondary);
+    font-size: 14px;
+    max-width: 46ch;
+  }
+
+  .coverage-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    text-align: right;
+  }
+  .coverage-badge strong {
+    font-size: 13.5px;
+    color: var(--ink);
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  /* ---------- Filter bar ---------- */
+
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 18px;
+    box-shadow: var(--shadow);
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--ink-secondary);
+  }
+
+  .filter-group label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+
+  .filter-bar input[type="date"] {
+    font-family: var(--font-body);
+    font-variant-numeric: tabular-nums;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    padding: 6px 9px;
+    accent-color: var(--accent);
+  }
+  .filter-bar input[type="date"]:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .filter-bar select {
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 7px;
+    padding: 6px 9px;
+    max-width: 220px;
+  }
+  .filter-bar select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .filter-sep { color: var(--ink-muted); font-size: 13px; }
+  .filter-sep-vert { width: 1px; height: 22px; background: var(--border-strong); display: inline-block; }
+
+  .filter-reset {
+    font-size: 12.5px;
+    color: var(--accent-ink);
+    background: var(--accent-tint);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 6px 11px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-weight: 600;
+  }
+  .filter-reset:hover { background: var(--accent-tint-strong); }
+  .filter-reset:disabled { opacity: 0.45; cursor: default; }
+
+  .filter-status {
+    margin-left: auto;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .filter-status strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- KPI strip ---------- */
+
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .kpi-tile {
+    background: var(--surface);
+    padding: 18px 18px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .kpi-label {
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+
+  .kpi-value {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    transition: opacity 0.12s ease;
+  }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--ink-secondary);
+  }
+
+  /* ---------- Chart grid & cards ---------- */
+
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px 22px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .card.span-2 { grid-column: 1 / -1; }
+
+  .card h2 {
+    font-family: var(--font-display);
+    font-size: 15.5px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.01em;
+  }
+
+  .card .card-note {
+    font-size: 12px;
+    color: var(--ink-muted);
+    margin: 0 0 12px;
+  }
+
+  .card-body {
+    margin-top: 4px;
+    transition: opacity 0.12s ease;
+  }
+  .card-body.empty-state {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80px;
+    color: var(--ink-muted);
+    font-size: 12.5px;
+  }
+
+  /* ---------- Horizontal bar chart ---------- */
+
+  .hbar-row {
+    display: grid;
+    grid-template-columns: 128px 1fr;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+  }
+
+  .hbar-label {
+    font-size: 12.5px;
+    color: var(--ink-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hbar-label .sub {
+    display: block;
+    font-size: 10.5px;
+    color: var(--ink-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hbar-track {
+    position: relative;
+    height: 20px;
+    display: flex;
+    align-items: center;
+  }
+
+  .hbar-fill {
+    height: 18px;
+    max-height: 18px;
+    background: var(--data);
+    border-radius: 0 4px 4px 0;
+    min-width: 3px;
+    transition: width 0.2s ease, filter 0.15s ease;
+  }
+  .hbar-row:hover .hbar-fill { filter: brightness(1.08); }
+
+  .hbar-value {
+    margin-left: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- Vertical bar / histogram ---------- */
+
+  .vbar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 168px;
+    padding-top: 20px;
+  }
+
+  .vbar-col {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    gap: 6px;
+    position: relative;
+  }
+
+  .vbar-value {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .vbar-fill {
+    width: 100%;
+    max-width: 46px;
+    background: var(--data);
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+    transition: height 0.2s ease, filter 0.15s ease;
+  }
+  .vbar-col:hover .vbar-fill { filter: brightness(1.08); }
+
+  .vbar-label {
+    font-size: 11px;
+    color: var(--ink-secondary);
+    margin-top: 2px;
+    text-align: center;
+  }
+
+  /* ---------- Line chart ---------- */
+
+  .line-chart-wrap {
+    position: relative;
+    width: 100%;
+    height: 220px;
+  }
+  .line-chart-wrap svg { width: 100%; height: 100%; overflow: visible; }
+
+  .line-path { fill: none; stroke: var(--data); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .area-path { fill: var(--data); opacity: 0.10; }
+  .gridline { stroke: var(--grid); stroke-width: 1; }
+  .baseline-axis { stroke: var(--baseline); stroke-width: 1; }
+  .axis-label { font-size: 10.5px; fill: var(--ink-muted); font-family: var(--font-body); }
+
+  .crosshair-line { stroke: var(--ink-muted); stroke-width: 1; stroke-dasharray: 2 2; opacity: 0; }
+  .crosshair-dot { fill: var(--data); stroke: var(--surface); stroke-width: 2; r: 4.5; opacity: 0; }
+
+  /* ---------- Heatmap ---------- */
+
+  .heatmap {
+    display: grid;
+    gap: 3px;
+    font-size: 11.5px;
+  }
+  .heat-corner, .heat-colhead, .heat-rowhead {
+    color: var(--ink-muted);
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+  }
+  .heat-colhead { justify-content: center; padding-bottom: 4px; text-align: center; line-height: 1.2; }
+  .heat-rowhead { justify-content: flex-end; padding-right: 8px; white-space: nowrap; }
+  .heat-cell {
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 34px;
+    color: var(--ink);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    transition: background 0.2s ease;
+  }
+  .heat-cell.hi { color: var(--cell-ink-hi); }
+  .heat-cell.zero { color: var(--ink-muted); font-weight: 400; }
+
+  #chart-intent .hbar-row,
+  #chart-horizon .hbar-row,
+  #chart-loa .hbar-row,
+  #chart-entry .hbar-row,
+  #chart-alerts .hbar-row,
+  #chart-roster .hbar-row { grid-template-columns: 190px 1fr; }
+  @media (max-width: 760px) {
+    #chart-intent .hbar-row,
+    #chart-horizon .hbar-row,
+    #chart-loa .hbar-row,
+    #chart-entry .hbar-row,
+    #chart-alerts .hbar-row,
+    #chart-roster .hbar-row { grid-template-columns: 120px 1fr; }
+  }
+
+  /* ---------- Identity list (unique users, identified) ---------- */
+
+  .identity-summary {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--ink-secondary);
+    padding: 2px 0 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+  .identity-summary strong { color: var(--ink); font-size: 15px; font-weight: 600; }
+
+  .identity-list {
+    max-height: 340px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .identity-row {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 4px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12.5px;
+  }
+  .identity-row:last-child { border-bottom: none; }
+
+  .identity-name { color: var(--ink); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .identity-email { color: var(--ink-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .identity-unresolved .identity-name { color: var(--ink-muted); font-style: italic; }
+
+  .identity-badge {
+    font-size: 10.5px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 100px;
+    white-space: nowrap;
+    justify-self: end;
+  }
+  .identity-badge.hi { background: var(--data-soft); color: var(--accent-ink); }
+  .identity-badge.med { background: rgba(200, 160, 0, 0.15); color: #8a6d00; }
+  .identity-badge.lo { background: rgba(200, 60, 60, 0.13); color: #a13a3a; }
+  .identity-badge.none { background: var(--border); color: var(--ink-muted); }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .identity-badge.med { background: rgba(230, 190, 40, 0.16); color: #e6c85a; }
+    :root:not([data-theme="light"]) .identity-badge.lo { background: rgba(230, 100, 100, 0.16); color: #e68a8a; }
+  }
+  :root[data-theme="dark"] .identity-badge.med { background: rgba(230, 190, 40, 0.16); color: #e6c85a; }
+  :root[data-theme="dark"] .identity-badge.lo { background: rgba(230, 100, 100, 0.16); color: #e68a8a; }
+
+  /* ---------- Mini stats row (retention) ---------- */
+
+  .mini-stats {
+    display: flex;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .mini-stat {
+    flex: 1;
+    background: var(--surface-raised);
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .mini-stat .mini-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+  .mini-stat .mini-value {
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .mini-stat .mini-sub {
+    font-size: 11.5px;
+    color: var(--ink-secondary);
+  }
+
+  /* ---------- Tooltip ---------- */
+
+  #tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--bg);
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    line-height: 1.4;
+    z-index: 100;
+    opacity: 0;
+    transform: translate(-50%, calc(-100% - 10px));
+    transition: opacity 0.1s ease;
+    white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+  #tooltip.visible { opacity: 1; }
+  #tooltip .tt-title { font-weight: 600; }
+  #tooltip .tt-sub { opacity: 0.75; }
+
+  footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-muted);
+    padding-top: 8px;
+  }
+  footer a { color: var(--ink-muted); }
+
+  @media (max-width: 760px) {
+    .kpi-strip { grid-template-columns: repeat(3, 1fr); }
+    .chart-grid { grid-template-columns: 1fr; }
+    .card.span-2 { grid-column: auto; }
+    .hbar-row { grid-template-columns: 96px 1fr; }
+    .filter-status { margin-left: 0; width: 100%; }
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="masthead-left">
+      <span class="compass-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="9.5" stroke="var(--accent)" stroke-width="1.4"/>
+          <path d="M15.5 8.5L10.8 10.8L8.5 15.5L13.2 13.2L15.5 8.5Z" fill="var(--accent)"/>
+        </svg>
+      </span>
+      <div>
+        <h1>CatNav Compass</h1>
+        <p class="subtitle">Usage analytics for the CatNav Category Manager toolset &mdash; sessions, engagement and click activity across the tracked period.</p>
+      </div>
+    </div>
+    <div class="coverage-badge">
+      <strong id="coverage-range">&nbsp;</strong>
+      <span id="coverage-days">&nbsp;</span>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label for="date-from">From</label>
+      <input type="date" id="date-from">
+    </div>
+    <span class="filter-sep">&rarr;</span>
+    <div class="filter-group">
+      <label for="date-to">To</label>
+      <input type="date" id="date-to">
+    </div>
+    <button class="filter-reset" id="filter-reset" type="button">Reset to full range</button>
+    <span class="filter-sep filter-sep-vert" aria-hidden="true"></span>
+    <div class="filter-group">
+      <label for="portfolio-select">Portfolio</label>
+      <select id="portfolio-select"></select>
+    </div>
+    <span class="filter-status" id="filter-status"></span>
+  </div>
+
+  <div class="kpi-strip" id="kpi-strip"></div>
+
+  <div class="chart-grid">
+
+    <section class="card span-2" aria-label="Daily session trend">
+      <h2>Sessions per day</h2>
+      <p class="card-note">Distinct CatNav sessions, by calendar date. Hover the line for a given day.</p>
+      <div class="card-body line-chart-wrap" id="chart-daily"></div>
+    </section>
+
+    <section class="card span-2" aria-label="New vs returning usage">
+      <h2>New vs. returning usage</h2>
+      <p class="card-note">A session counts as "returning" if that user's very first session (anywhere in the full dataset) was on an earlier date.</p>
+      <div class="mini-stats" id="stats-retention"></div>
+      <div class="card-body line-chart-wrap" id="chart-retention"></div>
+    </section>
+
+    <section class="card span-2" aria-label="Session intent breakdown">
+      <h2>How people use CatNav</h2>
+      <p class="card-note">Sessions grouped by behavior pattern (rule-based, not stated intent) &mdash; see a session's dominant modules, filtering/drill-down depth, AI assistant use, and alert engagement.</p>
+      <div class="card-body" id="chart-intent"></div>
+    </section>
+
+    <section class="card" aria-label="Bounce rate over time">
+      <h2>Bounce rate</h2>
+      <p class="card-note">Share of sessions with zero module engagement, per day.</p>
+      <div class="card-body line-chart-wrap" id="chart-bounce"></div>
+    </section>
+
+    <section class="card" aria-label="Module popularity">
+      <h2>Module popularity</h2>
+      <p class="card-note">Distinct sessions touching each module, in the selected range.</p>
+      <div class="card-body" id="chart-modules"></div>
+    </section>
+
+    <section class="card" aria-label="Session entry point">
+      <h2>Where sessions start</h2>
+      <p class="card-note">First module touched in each session &mdash; the tool's de facto landing experience.</p>
+      <div class="card-body" id="chart-entry"></div>
+    </section>
+
+    <section class="card" aria-label="Alert opens by type">
+      <h2>Alerts opened, by type</h2>
+      <p class="card-note">Counts the open action only (not dismissals). No impression data exists to compute an open rate.</p>
+      <div class="card-body" id="chart-alerts"></div>
+    </section>
+
+    <section class="card span-2" aria-label="AI sales commentary usage">
+      <h2>AI sales commentary usage</h2>
+      <p class="card-note">Tracks the dedicated <code>ai_sales_commentary</code> event, live since 13 Apr 2026. "Opened" is launching the AI assistant panel; "Generated" is the actual commentary-generation click.</p>
+      <div class="mini-stats" id="stats-ai"></div>
+      <div class="card-body line-chart-wrap" id="chart-ai-trend"></div>
+    </section>
+
+    <section class="card" aria-label="AI sales commentary by module">
+      <h2>AI commentary usage by module</h2>
+      <p class="card-note">Where people invoke the AI assistant. "General" covers interactions with no module context (e.g. the homepage widget).</p>
+      <div class="card-body" id="chart-ai-modules"></div>
+    </section>
+
+    <section class="card" aria-label="Top portfolios using AI commentary">
+      <h2>Top portfolios using AI commentary</h2>
+      <p class="card-note">Portfolios ranked by total AI commentary interactions (opens + generates) in the selected range.</p>
+      <div class="card-body" id="chart-ai-portfolios"></div>
+    </section>
+
+    <section class="card" aria-label="Distinct users for this portfolio">
+      <h2>Who's using this portfolio</h2>
+      <p class="card-note">Real named users from the official CatNav usage tracking table &mdash; all-time (since 2024), independent of the date filter above. Select a single portfolio to see it.</p>
+      <div class="card-body" id="chart-roster"></div>
+    </section>
+
+    <section class="card span-2" aria-label="Unique users identified, selected range">
+      <h2>Unique users, identified</h2>
+      <p class="card-note">Each user_id in the selected range/portfolio, resolved to a name and email where possible. This is a <strong>probabilistic inference</strong> from behavioral signals (not an authenticated login) &mdash; treat low-confidence rows with caution, and note that some users never resolve at all.</p>
+      <div class="card-body" id="chart-identity"></div>
+    </section>
+
+    <section class="card" aria-label="Engaged time by module">
+      <h2>Engaged time by module</h2>
+      <p class="card-note">Summed focused-tab time, in hours.</p>
+      <div class="card-body" id="chart-engaged"></div>
+    </section>
+
+    <section class="card" aria-label="Time horizon preference">
+      <h2>Time horizon preference</h2>
+      <p class="card-note">Which reporting windows people actually select (case variants merged).</p>
+      <div class="card-body" id="chart-horizon"></div>
+    </section>
+
+    <section class="card" aria-label="Level of analysis preference">
+      <h2>Level of analysis preference</h2>
+      <p class="card-note">Segment vs. brand vs. supplier &mdash; how granular people drill.</p>
+      <div class="card-body" id="chart-loa"></div>
+    </section>
+
+    <section class="card" aria-label="Top clicked elements">
+      <h2>Top clicked elements</h2>
+      <p class="card-note">Ranked from the 150 most-clicked elements overall &mdash; a narrow range may show fewer.</p>
+      <div class="card-body" id="chart-clicks"></div>
+    </section>
+
+    <section class="card" aria-label="Session length distribution">
+      <h2>Session length</h2>
+      <p class="card-note">Sessions bucketed by total engaged time.</p>
+      <div class="card-body vbar-chart" id="chart-sessionlen"></div>
+    </section>
+
+    <section class="card" aria-label="Usage by hour of day">
+      <h2>Usage by hour of day</h2>
+      <p class="card-note">Events by local hour (24h), in the selected range.</p>
+      <div class="card-body vbar-chart" id="chart-hour"></div>
+    </section>
+
+    <section class="card" aria-label="Most engaged portfolios">
+      <h2>Most engaged portfolios</h2>
+      <p class="card-note">Top 12 retail portfolios by total engaged time, resolved to the real category (not owner name) via the CatNav Users &amp; Portfolios master sheet. ~0.2% of rows are unmapped and excluded.</p>
+      <div class="card-body" id="chart-portfolios"></div>
+    </section>
+
+    <section class="card" aria-label="Usage by day of week">
+      <h2>Usage by day of week</h2>
+      <p class="card-note">Sessions per weekday, in the selected range.</p>
+      <div class="card-body vbar-chart" id="chart-dow"></div>
+    </section>
+
+    <section class="card span-2" aria-label="Adoption concentration">
+      <h2>Adoption concentration</h2>
+      <p class="card-note" id="concentration-note">Cumulative share of engaged time, portfolios ranked from heaviest to lightest user.</p>
+      <div class="card-body line-chart-wrap" id="chart-concentration"></div>
+    </section>
+
+    <section class="card span-2" aria-label="Module usage by day of week">
+      <h2>Module usage by day of week</h2>
+      <p class="card-note">Distinct sessions per module, by weekday &mdash; top 6 modules.</p>
+      <div class="card-body" id="chart-heatmap" style="overflow-x:auto;"></div>
+    </section>
+
+  </div>
+
+  <footer>Source: gs://ga_user_tracking_catnav/fact_user_events &middot; gcp-wow-wiq-kscope-prod.prod.fact_user_events</footer>
+</div>
+
+<div id="tooltip" role="tooltip"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var DATA = __DASHBOARD_DATA__;
+
+  var N = DATA.dates.length;
+  var moduleIndex = {};
+  DATA.modules.forEach(function (m, i) { moduleIndex[m] = i; });
+
+  // ---- pre-bucket sparse [dateIdx, ...] rows by dateIdx for fast range scans ----
+  function bucketByDate(rows) {
+    var out = [];
+    for (var i = 0; i < N; i++) out.push([]);
+    rows.forEach(function (row) { out[row[0]].push(row); });
+    return out;
+  }
+  var moduleByDate = bucketByDate(DATA.module_daily);       // [dateIdx][ {i, moduleIdx, sessions, events, minutes} ]
+  var heatByDate = bucketByDate(DATA.heat_daily);
+  var portfolioByDate = bucketByDate(DATA.portfolio_daily);
+  var clickByDate = bucketByDate(DATA.click_daily);
+  var sessionLenByDate = bucketByDate(DATA.session_len_daily);
+  var userByDate = bucketByDate(DATA.user_daily);
+  var intentByDate = bucketByDate(DATA.bucket_daily);
+  var newReturningByDate = bucketByDate(DATA.new_returning_daily);
+  var hourByDate = bucketByDate(DATA.hour_daily);
+  var horizonByDate = bucketByDate(DATA.time_horizon_daily);
+  var loaByDate = bucketByDate(DATA.level_of_analysis_daily);
+  var entryByDate = bucketByDate(DATA.entry_module_daily);
+  var alertByDate = bucketByDate(DATA.alert_daily);
+  var aiByDate = bucketByDate(DATA.ai_daily);
+  var aiModuleByDate = bucketByDate(DATA.ai_module_daily);
+  var portfolioAiByDate = bucketByDate(DATA.portfolio_ai_daily);
+  var portfolioAiModuleByDate = bucketByDate(DATA.portfolio_ai_module_daily);
+  var portfolioDailyByDate = bucketByDate(DATA.portfolio_daily);
+  var portfolioEventsByDate = bucketByDate(DATA.portfolio_events_daily);
+  var portfolioUserByDate = bucketByDate(DATA.portfolio_user_daily);
+  var portfolioModuleByDate = bucketByDate(DATA.portfolio_module_daily);
+  var portfolioEntryByDate = bucketByDate(DATA.portfolio_entry_daily);
+  var portfolioAlertByDate = bucketByDate(DATA.portfolio_alert_daily);
+  var portfolioHorizonByDate = bucketByDate(DATA.portfolio_horizon_daily);
+  var portfolioLoaByDate = bucketByDate(DATA.portfolio_loa_daily);
+  var portfolioHourByDate = bucketByDate(DATA.portfolio_hour_daily);
+  var portfolioClickByDate = bucketByDate(DATA.portfolio_click_daily);
+  var portfolioSessionlenByDate = bucketByDate(DATA.portfolio_sessionlen_daily);
+  var portfolioNewretByDate = bucketByDate(DATA.portfolio_newret_daily);
+  var portfolioIntentByDate = bucketByDate(DATA.portfolio_intent_daily);
+
+  // Strips the portfolioIdx column (position 1) from a portfolio-crossed row array,
+  // yielding the same shape as its non-portfolio-scoped counterpart.
+  function scopedRows(dateIdx, normalByDate, crossedByDate, portfolioIdx) {
+    if (portfolioIdx === null) return normalByDate[dateIdx];
+    var out = [];
+    var rows = crossedByDate[dateIdx];
+    for (var k = 0; k < rows.length; k++) {
+      if (rows[k][1] === portfolioIdx) out.push([rows[k][0]].concat(rows[k].slice(2)));
+    }
+    return out;
+  }
+
+  // ---- tooltip ----
+  var tooltip = document.getElementById("tooltip");
+  function showTooltip(x, y, titleHtml, subHtml) {
+    tooltip.innerHTML = '<div class="tt-title">' + titleHtml + '</div>' + (subHtml ? '<div class="tt-sub">' + subHtml + '</div>' : '');
+    tooltip.style.left = x + "px";
+    tooltip.style.top = y + "px";
+    tooltip.classList.add("visible");
+  }
+  function hideTooltip() { tooltip.classList.remove("visible"); }
+
+  function fmt(n) { return Math.round(n).toLocaleString(); }
+  function fmtHours(minutes) {
+    var h = minutes / 60;
+    return h >= 100 ? fmt(h) + " hrs" : h.toFixed(1) + " hrs";
+  }
+  function fmtDate(iso) {
+    var d = new Date(iso + "T00:00:00Z");
+    return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  }
+  function fmtDateShort(iso) {
+    var d = new Date(iso + "T00:00:00Z");
+    return d.toLocaleDateString("en-AU", { day: "numeric", month: "short", timeZone: "UTC" });
+  }
+
+  // Stable categorical color by a fixed entity index (not display rank, so a given
+  // module/bucket/day keeps the same color across charts and as filters change).
+  // Beyond the 8 validated slots, entities fall back to a shared muted tone.
+  function catColor(idx) {
+    return idx >= 0 && idx < 8 ? "var(--cat-" + (idx + 1) + ")" : "var(--cat-muted)";
+  }
+
+  // Sequential single-hue ramp (light tint -> full accent) for genuinely ordered
+  // categories (session length, hour of day) -- same mechanism as the heatmap cells.
+  function seqColor(idx, count) {
+    var t = count > 1 ? idx / (count - 1) : 0;
+    return "color-mix(in oklab, var(--heat-lo), var(--heat-hi) " + Math.round(t * 100) + "%)";
+  }
+
+  function clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+  function emptyState(el, msg) {
+    clearChildren(el);
+    el.classList.add("empty-state");
+    el.textContent = msg;
+  }
+  function unEmptyState(el) { el.classList.remove("empty-state"); }
+
+  // ================= Aggregation from the raw per-date data, for a given [fromIdx, toIdx] =================
+
+  function computeAll(fromIdx, toIdx, portfolioIdx) {
+    if (portfolioIdx === undefined) portfolioIdx = null;
+    var scoped = portfolioIdx !== null;
+    var res = {};
+
+    var events = 0, sessions = 0, engagedMin = 0;
+    var users = {}, portfolios = {};
+    var moduleAgg = {};   // name -> {sessions, events, minutes}
+    var heatAgg = {};     // "day|heatIdx" -> sessions
+    var portfolioAgg = {}; // name -> {minutes, sessions}
+    var clickAgg = {};    // comboIdx -> count
+    var bucketAgg = DATA.bucket_labels.map(function () { return 0; });
+    var intentAgg = DATA.intent_buckets.map(function () { return { sessions: 0, minutes: 0 }; });
+    var newReturningAgg = { 0: 0, 1: 0 };
+    var hourAgg = {};
+    var horizonAgg = {};
+    var loaAgg = {};
+    var entryAgg = {};
+    var alertAgg = {};
+    var aiAgg = {};        // actionIdx -> count
+    var aiModuleAgg = {};  // aiModuleIdx -> count
+    var aiTrend = [];
+    var portfolioAiAgg = {}; // portfolio name -> total AI interactions (always all-portfolio, for ranking)
+    var retentionTrend = [];
+    var bounceTrend = [];
+    var bounceIdx = DATA.intent_buckets.indexOf("Bounce");
+    var dowEvents = {}, dowSessions = {};
+    DATA.dow_order = DATA.dow_order || ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    DATA.dow_order.forEach(function (d) { dowEvents[d] = 0; dowSessions[d] = 0; });
+
+    var combosTable = scoped ? DATA.portfolio_combos : DATA.combos;
+    var scopedPortfolioName = scoped ? DATA.portfolios[portfolioIdx] : null;
+
+    res.dailyTrend = [];
+
+    for (var i = fromIdx; i <= toIdx; i++) {
+      var dow = DATA.dow_of_date[i];
+      var dayEvents, daySessions, dayMinutes;
+
+      if (!scoped) {
+        dayEvents = DATA.events_by_date[i];
+        daySessions = DATA.sessions_by_date[i];
+        dayMinutes = DATA.engaged_minutes_by_date[i];
+        userByDate[i].forEach(function (row) { users[row[1]] = true; });
+        portfolioByDate[i].forEach(function (row) {
+          var name = row[1];
+          portfolios[name] = true;
+          var a = portfolioAgg[name] || (portfolioAgg[name] = { minutes: 0, sessions: 0 });
+          a.minutes += row[2]; a.sessions += row[3];
+        });
+      } else {
+        dayEvents = 0; daySessions = 0; dayMinutes = 0;
+        portfolioEventsByDate[i].forEach(function (row) { if (row[1] === portfolioIdx) dayEvents += row[2]; });
+        portfolioDailyByDate[i].forEach(function (row) {
+          if (row[1] === scopedPortfolioName) { dayMinutes += row[2]; daySessions += row[3]; }
+        });
+        portfolioUserByDate[i].forEach(function (row) { if (row[1] === portfolioIdx) users[row[2]] = true; });
+      }
+
+      events += dayEvents; sessions += daySessions; engagedMin += dayMinutes;
+      dowEvents[dow] += dayEvents; dowSessions[dow] += daySessions;
+      res.dailyTrend.push({ date: DATA.dates[i], events: dayEvents, sessions: daySessions });
+
+      var moduleRows = scopedRows(i, moduleByDate, portfolioModuleByDate, portfolioIdx);
+      moduleRows.forEach(function (row) {
+        var name = DATA.modules[row[1]];
+        var a = moduleAgg[name] || (moduleAgg[name] = { sessions: 0, events: 0, minutes: 0 });
+        a.sessions += row[2]; a.events += row[3]; a.minutes += row[4];
+        var heatIdx = DATA.heat_modules.indexOf(name);
+        if (heatIdx !== -1) {
+          var hkey = dow + "|" + heatIdx;
+          heatAgg[hkey] = (heatAgg[hkey] || 0) + row[2];
+        }
+      });
+
+      scopedRows(i, clickByDate, portfolioClickByDate, portfolioIdx).forEach(function (row) {
+        clickAgg[row[1]] = (clickAgg[row[1]] || 0) + row[2];
+      });
+
+      scopedRows(i, sessionLenByDate, portfolioSessionlenByDate, portfolioIdx).forEach(function (row) {
+        bucketAgg[row[1]] += row[2];
+      });
+
+      var dayBounce = 0;
+      scopedRows(i, intentByDate, portfolioIntentByDate, portfolioIdx).forEach(function (row) {
+        intentAgg[row[1]].sessions += row[2];
+        intentAgg[row[1]].minutes += row[3];
+        if (row[1] === bounceIdx) dayBounce += row[2];
+      });
+      bounceTrend.push({ date: DATA.dates[i], pct: daySessions > 0 ? (dayBounce / daySessions) * 100 : 0 });
+
+      var dayNew = 0, dayReturning = 0;
+      scopedRows(i, newReturningByDate, portfolioNewretByDate, portfolioIdx).forEach(function (row) {
+        newReturningAgg[row[1]] += row[2];
+        if (row[1] === 0) dayNew += row[2]; else dayReturning += row[2];
+      });
+      var dayNR = dayNew + dayReturning;
+      retentionTrend.push({ date: DATA.dates[i], pct: dayNR > 0 ? (dayReturning / dayNR) * 100 : 0 });
+
+      scopedRows(i, hourByDate, portfolioHourByDate, portfolioIdx).forEach(function (row) {
+        hourAgg[row[1]] = (hourAgg[row[1]] || 0) + row[2];
+      });
+
+      scopedRows(i, horizonByDate, portfolioHorizonByDate, portfolioIdx).forEach(function (row) {
+        horizonAgg[row[1]] = (horizonAgg[row[1]] || 0) + row[2];
+      });
+
+      scopedRows(i, loaByDate, portfolioLoaByDate, portfolioIdx).forEach(function (row) {
+        loaAgg[row[1]] = (loaAgg[row[1]] || 0) + row[2];
+      });
+
+      scopedRows(i, entryByDate, portfolioEntryByDate, portfolioIdx).forEach(function (row) {
+        entryAgg[row[1]] = (entryAgg[row[1]] || 0) + row[2];
+      });
+
+      scopedRows(i, alertByDate, portfolioAlertByDate, portfolioIdx).forEach(function (row) {
+        alertAgg[row[1]] = (alertAgg[row[1]] || 0) + row[2];
+      });
+
+      var dayAiTotal = 0;
+      scopedRows(i, aiByDate, portfolioAiByDate, portfolioIdx).forEach(function (row) {
+        aiAgg[row[1]] = (aiAgg[row[1]] || 0) + row[2];
+        dayAiTotal += row[2];
+      });
+      aiTrend.push({ date: DATA.dates[i], total: dayAiTotal });
+
+      scopedRows(i, aiModuleByDate, portfolioAiModuleByDate, portfolioIdx).forEach(function (row) {
+        aiModuleAgg[row[1]] = (aiModuleAgg[row[1]] || 0) + row[2];
+      });
+
+      portfolioAiByDate[i].forEach(function (row) {
+        var pName = DATA.portfolios[row[1]];
+        portfolioAiAgg[pName] = (portfolioAiAgg[pName] || 0) + row[3];
+      });
+    }
+
+    res.kpis = {
+      events: events,
+      sessions: sessions,
+      engagedHours: engagedMin / 60,
+      users: Object.keys(users).length,
+      portfolios: scoped ? 1 : Object.keys(portfolios).length,
+      days: toIdx - fromIdx + 1,
+      dateMin: DATA.dates[fromIdx],
+      dateMax: DATA.dates[toIdx]
+    };
+
+    res.scopedPortfolio = scopedPortfolioName;
+    res.userRoster = scoped ? (DATA.user_roster[portfolioIdx] || []) : null;
+    res.userIds = Object.keys(users);
+
+    res.modulePopularity = Object.keys(moduleAgg).map(function (name) {
+      return { module: name, sessions: moduleAgg[name].sessions, events: moduleAgg[name].events };
+    }).sort(function (a, b) { return b.sessions - a.sessions; });
+
+    res.engagedByModule = Object.keys(moduleAgg).map(function (name) {
+      return { module: name, minutes: moduleAgg[name].minutes };
+    }).filter(function (d) { return d.minutes > 0; })
+      .sort(function (a, b) { return b.minutes - a.minutes; });
+
+    res.topClicks = Object.keys(clickAgg).map(function (idx) {
+      var c = combosTable[idx];
+      return { title: c.title, value: c.value, count: clickAgg[idx] };
+    }).sort(function (a, b) { return b.count - a.count; }).slice(0, 15);
+
+    res.sessionLenDist = DATA.bucket_labels.map(function (label, i) {
+      return { bucket: label, count: bucketAgg[i] };
+    });
+
+    var totalIntentSessions = intentAgg.reduce(function (s, a) { return s + a.sessions; }, 0);
+    res.intentBuckets = DATA.intent_buckets.map(function (name, i) {
+      var a = intentAgg[i];
+      return {
+        bucket: name,
+        sessions: a.sessions,
+        avgEngagedMin: a.sessions > 0 ? a.minutes / a.sessions : 0,
+        sharePct: totalIntentSessions > 0 ? (a.sessions / totalIntentSessions) * 100 : 0
+      };
+    }).filter(function (d) { return d.sessions > 0; })
+      .sort(function (a, b) { return b.sessions - a.sessions; });
+
+    res.topPortfolios = scoped ? null : Object.keys(portfolioAgg).map(function (name) {
+      return { portfolio: name, minutes: portfolioAgg[name].minutes, sessions: portfolioAgg[name].sessions };
+    }).sort(function (a, b) { return b.minutes - a.minutes; }).slice(0, 12);
+
+    res.dayOfWeek = DATA.dow_order.map(function (d) {
+      return { day: d, events: dowEvents[d], sessions: dowSessions[d] };
+    });
+
+    res.heatmap = {
+      modules: DATA.heat_modules,
+      days: DATA.dow_order,
+      matrix: DATA.dow_order.map(function (d) {
+        return DATA.heat_modules.map(function (m, hi) { return heatAgg[d + "|" + hi] || 0; });
+      })
+    };
+
+    var nrTotal = newReturningAgg[0] + newReturningAgg[1];
+    res.retention = {
+      newSessions: newReturningAgg[0],
+      returningSessions: newReturningAgg[1],
+      returningPct: nrTotal > 0 ? (newReturningAgg[1] / nrTotal) * 100 : 0,
+      trend: retentionTrend
+    };
+
+    res.bounceTrend = bounceTrend;
+
+    res.entryModule = Object.keys(entryAgg).map(function (mi) {
+      return { module: DATA.modules[mi], sessions: entryAgg[mi] };
+    }).sort(function (a, b) { return b.sessions - a.sessions; });
+
+    res.alertOpens = Object.keys(alertAgg).map(function (ai) {
+      return { alert: DATA.alert_types[ai], opens: alertAgg[ai] };
+    }).sort(function (a, b) { return b.opens - a.opens; });
+
+    var aiOpened = aiAgg[DATA.ai_actions.indexOf("Opened")] || 0;
+    var aiGenerated = aiAgg[DATA.ai_actions.indexOf("Generated")] || 0;
+    res.aiFunnel = {
+      opened: aiOpened,
+      generated: aiGenerated,
+      completionPct: aiOpened > 0 ? (aiGenerated / aiOpened) * 100 : 0
+    };
+    res.aiTrend = aiTrend;
+    res.aiByModule = Object.keys(aiModuleAgg).map(function (mi) {
+      return { module: DATA.ai_modules[mi], count: aiModuleAgg[mi] };
+    }).sort(function (a, b) { return b.count - a.count; });
+    res.topAiPortfolios = scoped ? null : Object.keys(portfolioAiAgg).map(function (name) {
+      return { portfolio: name, count: portfolioAiAgg[name] };
+    }).sort(function (a, b) { return b.count - a.count; }).slice(0, 12);
+
+    res.timeHorizon = Object.keys(horizonAgg).map(function (vi) {
+      return { value: DATA.time_horizon_values[vi], count: horizonAgg[vi] };
+    }).sort(function (a, b) { return b.count - a.count; });
+
+    res.levelOfAnalysis = Object.keys(loaAgg).map(function (vi) {
+      return { value: DATA.level_of_analysis_values[vi], count: loaAgg[vi] };
+    }).sort(function (a, b) { return b.count - a.count; });
+
+    res.hourOfDay = [];
+    for (var h = 0; h < 24; h++) res.hourOfDay.push({ hour: h, events: hourAgg[h] || 0 });
+
+    if (scoped) {
+      res.concentration = null;
+    } else {
+      var allPortfolios = Object.keys(portfolioAgg).map(function (name) {
+        return { portfolio: name, minutes: portfolioAgg[name].minutes };
+      }).filter(function (d) { return d.minutes > 0; })
+        .sort(function (a, b) { return b.minutes - a.minutes; });
+      var totalMinutes = allPortfolios.reduce(function (s, d) { return s + d.minutes; }, 0);
+      var running = 0;
+      var concentrationPoints = [{ pctPortfolios: 0, pctMinutes: 0 }];
+      allPortfolios.forEach(function (d, i) {
+        running += d.minutes;
+        concentrationPoints.push({
+          pctPortfolios: ((i + 1) / allPortfolios.length) * 100,
+          pctMinutes: totalMinutes > 0 ? (running / totalMinutes) * 100 : 0
+        });
+      });
+      var top20Count = Math.max(1, Math.round(allPortfolios.length * 0.2));
+      var top20Share = totalMinutes > 0
+        ? (allPortfolios.slice(0, top20Count).reduce(function (s, d) { return s + d.minutes; }, 0) / totalMinutes) * 100
+        : 0;
+      res.concentration = {
+        points: concentrationPoints,
+        totalPortfolios: allPortfolios.length,
+        top20Count: top20Count,
+        top20Share: top20Share
+      };
+    }
+
+    return res;
+  }
+
+  // ================= Renderers (re-render in place on every filter change) =================
+
+  function renderKpis(k) {
+    var strip = document.getElementById("kpi-strip");
+    clearChildren(strip);
+    var tiles = [
+      { label: "Sessions", value: fmt(k.sessions), sub: "distinct sessions" },
+      { label: "Unique users", value: fmt(k.users), sub: "distinct users, selected range" },
+      { label: "Events tracked", value: fmt(k.events), sub: "raw interaction events" },
+      { label: "Engaged time", value: fmt(k.engagedHours) + " hrs", sub: "summed focused-tab time" },
+      { label: "Portfolios active", value: fmt(k.portfolios), sub: "with tracked activity" },
+      { label: "Coverage", value: k.days + (k.days === 1 ? " day" : " days"), sub: fmtDateShort(k.dateMin) + " – " + fmtDateShort(k.dateMax) }
+    ];
+    tiles.forEach(function (t) {
+      var el = document.createElement("div");
+      el.className = "kpi-tile";
+      el.innerHTML = '<div class="kpi-label">' + t.label + '</div><div class="kpi-value">' + t.value + '</div><div class="kpi-sub">' + t.sub + '</div>';
+      strip.appendChild(el);
+    });
+  }
+
+  function renderMiniStats(containerId, stats) {
+    var el = document.getElementById(containerId);
+    clearChildren(el);
+    stats.forEach(function (s) {
+      var d = document.createElement("div");
+      d.className = "mini-stat";
+      d.innerHTML = '<div class="mini-label">' + s.label + '</div><div class="mini-value">' + s.value + '</div><div class="mini-sub">' + s.sub + '</div>';
+      el.appendChild(d);
+    });
+  }
+
+  function renderIdentity(containerId, userIds) {
+    var container = document.getElementById(containerId);
+    clearChildren(container);
+    unEmptyState(container);
+    if (!userIds.length) { emptyState(container, "No activity in this range."); return; }
+
+    var resolved = [];
+    var unresolvedCount = 0;
+    userIds.forEach(function (id) {
+      var identity = DATA.user_identity[id];
+      if (identity) { resolved.push(identity); } else { unresolvedCount++; }
+    });
+    resolved.sort(function (a, b) { return (a.name || a.email).localeCompare(b.name || b.email); });
+
+    var pct = Math.round((resolved.length / userIds.length) * 100);
+    var summary = document.createElement("div");
+    summary.className = "identity-summary";
+    summary.innerHTML = "<strong>" + fmt(resolved.length) + " of " + fmt(userIds.length) + "</strong> users identified (" + pct + "%)" +
+      (unresolvedCount > 0 ? " &middot; " + fmt(unresolvedCount) + " unresolved (anonymous id only)" : "");
+    container.appendChild(summary);
+    if (!resolved.length) return;
+
+    var list = document.createElement("div");
+    list.className = "identity-list";
+    resolved.forEach(function (d) {
+      var row = document.createElement("div");
+      row.className = "identity-row";
+      var tier = d.confidence >= 0.9 ? "hi" : d.confidence >= 0.7 ? "med" : "lo";
+      var tierLabel = Math.round(d.confidence * 100) + "%";
+      row.innerHTML =
+        '<span class="identity-name">' + (d.name || "(unnamed)") + "</span>" +
+        '<span class="identity-email">' + d.email + "</span>" +
+        '<span class="identity-badge ' + tier + '">' + tierLabel + "</span>";
+      row.addEventListener("mousemove", function (e) {
+        showTooltip(e.clientX, e.clientY, d.name || d.email, "confidence " + tierLabel + " &middot; " + fmt(d.matches) + " supporting observations");
+      });
+      row.addEventListener("mouseleave", hideTooltip);
+      list.appendChild(row);
+    });
+    container.appendChild(list);
+  }
+
+  function renderHBars(containerId, items, opts) {
+    var container = document.getElementById(containerId);
+    clearChildren(container);
+    unEmptyState(container);
+    if (items === null) { emptyState(container, (opts && opts.naMessage) || "Select \"All portfolios\" to see this."); return; }
+    if (!items.length) { emptyState(container, "No activity in this range."); return; }
+    var max = Math.max.apply(null, items.map(function (d) { return opts.value(d); }));
+    items.forEach(function (d) {
+      var val = opts.value(d);
+      var pct = max > 0 ? (val / max) * 100 : 0;
+      var row = document.createElement("div");
+      row.className = "hbar-row";
+
+      var label = document.createElement("div");
+      label.className = "hbar-label";
+      label.innerHTML = opts.label(d);
+
+      var track = document.createElement("div");
+      track.className = "hbar-track";
+      var fill = document.createElement("div");
+      fill.className = "hbar-fill";
+      fill.style.width = "max(3px, " + pct + "%)";
+      if (opts.colorFor) fill.style.background = opts.colorFor(d);
+      var valueEl = document.createElement("span");
+      valueEl.className = "hbar-value";
+      valueEl.textContent = opts.formatValue(val);
+      track.appendChild(fill);
+      track.appendChild(valueEl);
+
+      row.appendChild(label);
+      row.appendChild(track);
+
+      row.addEventListener("mousemove", function (e) {
+        showTooltip(e.clientX, e.clientY, opts.tooltipTitle ? opts.tooltipTitle(d) : opts.formatValue(val), opts.tooltipSub ? opts.tooltipSub(d) : null);
+      });
+      row.addEventListener("mouseleave", hideTooltip);
+
+      container.appendChild(row);
+    });
+  }
+
+  function renderVBars(containerId, items, opts) {
+    var container = document.getElementById(containerId);
+    clearChildren(container);
+    unEmptyState(container);
+    if (!items.length) { emptyState(container, "No activity in this range."); return; }
+    var max = Math.max.apply(null, items.map(function (d) { return opts.value(d); }));
+    var sparse = !!opts.sparseLabels;
+    items.forEach(function (d, i) {
+      var val = opts.value(d);
+      var pct = max > 0 ? (val / max) * 100 : 0;
+      var showLabel = !sparse || i % 3 === 0;
+      var fillStyle = "height:" + (val > 0 ? Math.max(pct, 1.2) : 0) + "%";
+      if (opts.colorFor) fillStyle += ";background:" + opts.colorFor(d, i);
+      var col = document.createElement("div");
+      col.className = "vbar-col";
+      col.innerHTML =
+        (sparse ? "" : '<span class="vbar-value">' + opts.formatValue(val) + '</span>') +
+        '<div class="vbar-fill" style="' + fillStyle + '"></div>' +
+        '<span class="vbar-label">' + (showLabel ? opts.label(d) : "") + '</span>';
+      col.addEventListener("mousemove", function (e) {
+        showTooltip(e.clientX, e.clientY, opts.tooltipTitle ? opts.tooltipTitle(d) : opts.label(d), opts.tooltipSub ? opts.tooltipSub(d) : null);
+      });
+      col.addEventListener("mouseleave", hideTooltip);
+      container.appendChild(col);
+    });
+  }
+
+  var lineSvgCounter = 0;
+
+  function renderTrendLine(containerId, points, opts) {
+    var wrap = document.getElementById(containerId);
+    clearChildren(wrap);
+    unEmptyState(wrap);
+    if (points.length < 2) { emptyState(wrap, "Select a wider range to see a trend."); return; }
+
+    var svgId = "line-svg-" + (lineSvgCounter++);
+    var chLineId = svgId + "-ch-line";
+    var chDotId = svgId + "-ch-dot";
+
+    var W = 1000, H = 220, padL = opts.padL || 34, padR = 8, padT = 10, padB = 22;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var value = opts.value;
+    var rawMax = Math.max.apply(null, points.map(value));
+    var roundTo = opts.yMaxRound || 100;
+    var niceMax = opts.yMax !== undefined ? opts.yMax : Math.max(roundTo, Math.ceil(rawMax / roundTo) * roundTo);
+
+    function x(i) { return padL + (i / (points.length - 1)) * innerW; }
+    function y(v) { return padT + innerH - (v / niceMax) * innerH; }
+
+    var linePts = points.map(function (p, i) { return x(i) + "," + y(value(p)); }).join(" L ");
+    var areaPts = "M " + x(0) + "," + y(0) + " L " + linePts + " L " + x(points.length - 1) + "," + y(0) + " Z";
+
+    var gridLines = "";
+    var ticks = [0, niceMax / 2, niceMax];
+    ticks.forEach(function (t) {
+      gridLines += '<line class="gridline" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y(t) + '" y2="' + y(t) + '"/>';
+      gridLines += '<text class="axis-label" x="4" y="' + (y(t) + 3) + '">' + (opts.formatAxis ? opts.formatAxis(t) : fmt(t)) + '</text>';
+    });
+
+    var xTicks = "";
+    if (opts.xTickLabel) {
+      var seenTicks = {};
+      points.forEach(function (p, i) {
+        var key = opts.xTickKey(p);
+        if (!seenTicks[key]) {
+          seenTicks[key] = true;
+          xTicks += '<text class="axis-label" x="' + x(i) + '" y="' + (H - 4) + '" text-anchor="start">' + opts.xTickLabel(p) + '</text>';
+        }
+      });
+    }
+
+    var container = document.createElement("div");
+    container.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" id="' + svgId + '">' +
+      '<g>' + gridLines + '</g>' +
+      '<line class="baseline-axis" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y(0) + '" y2="' + y(0) + '"/>' +
+      '<path class="area-path" d="' + areaPts + '"/>' +
+      '<path class="line-path" d="M ' + linePts + '"/>' +
+      xTicks +
+      '<line class="crosshair-line" id="' + chLineId + '" x1="0" x2="0" y1="' + padT + '" y2="' + (padT + innerH) + '"/>' +
+      '<circle class="crosshair-dot" id="' + chDotId + '"/>' +
+      '</svg>';
+    wrap.appendChild(container.firstElementChild);
+
+    var svg = document.getElementById(svgId);
+    var chLine = document.getElementById(chLineId);
+    var chDot = document.getElementById(chDotId);
+
+    svg.addEventListener("mousemove", function (e) {
+      var rect = svg.getBoundingClientRect();
+      var relX = (e.clientX - rect.left) / rect.width * W;
+      var idx = Math.round(((relX - padL) / innerW) * (points.length - 1));
+      idx = Math.max(0, Math.min(points.length - 1, idx));
+      var p = points[idx];
+      chLine.setAttribute("x1", x(idx));
+      chLine.setAttribute("x2", x(idx));
+      chLine.style.opacity = 1;
+      chDot.setAttribute("cx", x(idx));
+      chDot.setAttribute("cy", y(value(p)));
+      chDot.style.opacity = 1;
+      showTooltip(e.clientX, e.clientY, opts.tooltipTitle(p), opts.tooltipSub(p));
+    });
+    svg.addEventListener("mouseleave", function () {
+      chLine.style.opacity = 0;
+      chDot.style.opacity = 0;
+      hideTooltip();
+    });
+  }
+
+  function renderConcentrationCurve(containerId, noteId, c) {
+    var wrap = document.getElementById(containerId);
+    clearChildren(wrap);
+    unEmptyState(wrap);
+    var noteEl = document.getElementById(noteId);
+    if (c === null) {
+      emptyState(wrap, "Select \"All portfolios\" to see this.");
+      if (noteEl) noteEl.textContent = "Cumulative share of engaged time, portfolios ranked from heaviest to lightest user.";
+      return;
+    }
+    if (c.totalPortfolios === 0) {
+      emptyState(wrap, "No portfolio activity in this range.");
+      if (noteEl) noteEl.textContent = "Cumulative share of engaged time, portfolios ranked from heaviest to lightest user.";
+      return;
+    }
+    if (noteEl) {
+      noteEl.innerHTML = "Cumulative share of engaged time, portfolios ranked from heaviest to lightest user. Top " +
+        c.top20Count + " of " + c.totalPortfolios + " portfolios (20%) account for <strong>" + c.top20Share.toFixed(0) + "%</strong> of engaged time in this range.";
+    }
+
+    var points = c.points;
+    var svgId = "conc-svg-" + (lineSvgCounter++);
+    var chLineId = svgId + "-ch-line";
+    var chDotId = svgId + "-ch-dot";
+
+    var W = 1000, H = 220, padL = 40, padR = 8, padT = 10, padB = 22;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+
+    function x(p) { return padL + (p.pctPortfolios / 100) * innerW; }
+    function y(p) { return padT + innerH - (p.pctMinutes / 100) * innerH; }
+
+    var linePts = points.map(function (p) { return x(p) + "," + y(p); }).join(" L ");
+    var areaPts = "M " + x(points[0]) + "," + y({ pctMinutes: 0 }) + " L " + linePts + " L " + x(points[points.length - 1]) + "," + y({ pctMinutes: 0 }) + " Z";
+    var equalityLine = "M " + padL + "," + (padT + innerH) + " L " + (padL + innerW) + "," + padT;
+
+    var gridLines = "";
+    [0, 50, 100].forEach(function (t) {
+      gridLines += '<line class="gridline" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y({ pctMinutes: t }) + '" y2="' + y({ pctMinutes: t }) + '"/>';
+      gridLines += '<text class="axis-label" x="4" y="' + (y({ pctMinutes: t }) + 3) + '">' + t + '%</text>';
+    });
+    [0, 50, 100].forEach(function (t) {
+      gridLines += '<text class="axis-label" x="' + x({ pctPortfolios: t }) + '" y="' + (H - 4) + '" text-anchor="middle">' + t + '%</text>';
+    });
+
+    var container = document.createElement("div");
+    container.innerHTML =
+      '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" id="' + svgId + '">' +
+      '<g>' + gridLines + '</g>' +
+      '<path class="baseline-axis" d="' + equalityLine + '" fill="none" stroke-dasharray="3 3"/>' +
+      '<path class="area-path" d="' + areaPts + '"/>' +
+      '<path class="line-path" d="M ' + linePts + '"/>' +
+      '<line class="crosshair-line" id="' + chLineId + '" x1="0" x2="0" y1="' + padT + '" y2="' + (padT + innerH) + '"/>' +
+      '<circle class="crosshair-dot" id="' + chDotId + '"/>' +
+      '</svg>';
+    wrap.appendChild(container.firstElementChild);
+
+    var svg = document.getElementById(svgId);
+    var chLine = document.getElementById(chLineId);
+    var chDot = document.getElementById(chDotId);
+
+    svg.addEventListener("mousemove", function (e) {
+      var rect = svg.getBoundingClientRect();
+      var relX = (e.clientX - rect.left) / rect.width * W;
+      var pctPortfolios = Math.max(0, Math.min(100, ((relX - padL) / innerW) * 100));
+      var idx = Math.round((pctPortfolios / 100) * (points.length - 1));
+      idx = Math.max(0, Math.min(points.length - 1, idx));
+      var p = points[idx];
+      chLine.setAttribute("x1", x(p)); chLine.setAttribute("x2", x(p)); chLine.style.opacity = 1;
+      chDot.setAttribute("cx", x(p)); chDot.setAttribute("cy", y(p)); chDot.style.opacity = 1;
+      showTooltip(e.clientX, e.clientY, "Top " + p.pctPortfolios.toFixed(0) + "% of portfolios", p.pctMinutes.toFixed(0) + "% of engaged time");
+    });
+    svg.addEventListener("mouseleave", function () {
+      chLine.style.opacity = 0; chDot.style.opacity = 0; hideTooltip();
+    });
+  }
+
+  function renderHeatmap(h) {
+    var container = document.getElementById("chart-heatmap");
+    clearChildren(container);
+    unEmptyState(container);
+    var maxV = Math.max.apply(null, h.matrix.map(function (row) { return Math.max.apply(null, row); }));
+
+    var grid = document.createElement("div");
+    grid.className = "heatmap";
+    grid.style.gridTemplateColumns = "110px repeat(" + h.modules.length + ", 1fr)";
+
+    grid.appendChild(document.createElement("div"));
+    h.modules.forEach(function (mod) {
+      var el = document.createElement("div");
+      el.className = "heat-colhead";
+      el.textContent = mod;
+      grid.appendChild(el);
+    });
+
+    h.days.forEach(function (day, r) {
+      var rh = document.createElement("div");
+      rh.className = "heat-rowhead";
+      rh.textContent = day;
+      grid.appendChild(rh);
+
+      h.modules.forEach(function (mod, c) {
+        var v = h.matrix[r][c];
+        var t = maxV > 0 ? v / maxV : 0;
+        var cell = document.createElement("div");
+        cell.className = "heat-cell" + (t > 0.55 ? " hi" : "") + (v === 0 ? " zero" : "");
+        cell.style.background = v === 0 ? "transparent" : "color-mix(in oklab, var(--heat-lo), var(--heat-hi) " + Math.round(t * 100) + "%)";
+        cell.textContent = v === 0 ? "–" : fmt(v);
+        cell.addEventListener("mousemove", function (e) {
+          showTooltip(e.clientX, e.clientY, day + " &middot; " + mod, fmt(v) + " sessions");
+        });
+        cell.addEventListener("mouseleave", hideTooltip);
+        grid.appendChild(cell);
+      });
+    });
+
+    container.appendChild(grid);
+  }
+
+  function monthTickOpts() {
+    return {
+      xTickKey: function (p) { return p.date.slice(0, 7); },
+      xTickLabel: function (p) {
+        var d = new Date(p.date + "T00:00:00Z");
+        return d.toLocaleDateString("en-AU", { month: "short", timeZone: "UTC" });
+      }
+    };
+  }
+
+  function renderAll(res) {
+    renderKpis(res.kpis);
+
+    renderTrendLine("chart-daily", res.dailyTrend, Object.assign({
+      value: function (p) { return p.sessions; },
+      yMaxRound: 100,
+      tooltipTitle: function (p) { return fmtDateShort(p.date); },
+      tooltipSub: function (p) { return fmt(p.sessions) + " sessions &middot; " + fmt(p.events) + " events"; }
+    }, monthTickOpts()));
+
+    renderMiniStats("stats-retention", [
+      { label: "New sessions", value: fmt(res.retention.newSessions), sub: "first day this user appeared" },
+      { label: "Returning sessions", value: fmt(res.retention.returningSessions), sub: res.retention.returningPct.toFixed(1) + "% of sessions in range" }
+    ]);
+    renderTrendLine("chart-retention", res.retention.trend, Object.assign({
+      value: function (p) { return p.pct; },
+      yMax: 100, yMaxRound: 50,
+      formatAxis: function (t) { return t + "%"; },
+      tooltipTitle: function (p) { return fmtDateShort(p.date); },
+      tooltipSub: function (p) { return p.pct.toFixed(1) + "% returning"; }
+    }, monthTickOpts()));
+
+    renderTrendLine("chart-bounce", res.bounceTrend, Object.assign({
+      value: function (p) { return p.pct; },
+      yMax: 100, yMaxRound: 25,
+      formatAxis: function (t) { return t + "%"; },
+      tooltipTitle: function (p) { return fmtDateShort(p.date); },
+      tooltipSub: function (p) { return p.pct.toFixed(1) + "% bounced"; }
+    }, monthTickOpts()));
+
+    renderHBars("chart-intent", res.intentBuckets, {
+      colorFor: function (d) { return catColor(DATA.intent_buckets.indexOf(d.bucket)); },
+      label: function (d) { return d.bucket; },
+      value: function (d) { return d.sessions; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.bucket; },
+      tooltipSub: function (d) { return d.sharePct.toFixed(1) + "% of sessions &middot; avg " + (d.avgEngagedMin >= 1 ? d.avgEngagedMin.toFixed(1) + " min" : Math.round(d.avgEngagedMin * 60) + " sec") + " engaged"; }
+    });
+
+    renderHBars("chart-modules", res.modulePopularity, {
+      colorFor: function (d) { return catColor(DATA.modules.indexOf(d.module)); },
+      label: function (d) { return d.module; },
+      value: function (d) { return d.sessions; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.module; },
+      tooltipSub: function (d) { return fmt(d.sessions) + " sessions &middot; " + fmt(d.events) + " events"; }
+    });
+
+    renderHBars("chart-entry", res.entryModule, {
+      colorFor: function (d) { return catColor(DATA.modules.indexOf(d.module)); },
+      label: function (d) { return d.module; },
+      value: function (d) { return d.sessions; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.module; },
+      tooltipSub: function (d) { return fmt(d.sessions) + " sessions started here"; }
+    });
+
+    renderHBars("chart-alerts", res.alertOpens, {
+      colorFor: function (d) { return catColor(DATA.alert_types.indexOf(d.alert)); },
+      label: function (d) { return d.alert; },
+      value: function (d) { return d.opens; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.alert; },
+      tooltipSub: function (d) { return fmt(d.opens) + " opens"; }
+    });
+
+    renderMiniStats("stats-ai", [
+      { label: "Opened", value: fmt(res.aiFunnel.opened), sub: "AI assistant panel launched" },
+      { label: "Generated", value: fmt(res.aiFunnel.generated), sub: res.aiFunnel.completionPct.toFixed(1) + "% of opens led to a generate" }
+    ]);
+    renderTrendLine("chart-ai-trend", res.aiTrend, Object.assign({
+      value: function (p) { return p.total; },
+      yMaxRound: 20,
+      tooltipTitle: function (p) { return fmtDateShort(p.date); },
+      tooltipSub: function (p) { return fmt(p.total) + " AI commentary interactions"; }
+    }, monthTickOpts()));
+
+    renderHBars("chart-ai-modules", res.aiByModule, {
+      colorFor: function (d) { return catColor(DATA.ai_modules.indexOf(d.module)); },
+      label: function (d) { return d.module; },
+      value: function (d) { return d.count; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.module; },
+      tooltipSub: function (d) { return fmt(d.count) + " interactions"; }
+    });
+
+    renderHBars("chart-ai-portfolios", res.topAiPortfolios, {
+      naMessage: "Not applicable when a single portfolio is selected.",
+      label: function (d) { return d.portfolio; },
+      value: function (d) { return d.count; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.portfolio; },
+      tooltipSub: function (d) { return fmt(d.count) + " AI commentary interactions"; }
+    });
+
+    renderHBars("chart-roster", res.userRoster, {
+      naMessage: "Select a single portfolio (not \"All portfolios\") to see this.",
+      label: function (d) { return d.name + '<span class="sub">' + d.role + "</span>"; },
+      value: function (d) { return d.weeks; },
+      formatValue: function (v) { return v + " wks"; },
+      tooltipTitle: function (d) { return d.name + " (" + d.role + ")"; },
+      tooltipSub: function (d) { return d.weeks + " weeks active &middot; " + d.days + " total active days &middot; last seen " + fmtDateShort(d.last); }
+    });
+
+    renderIdentity("chart-identity", res.userIds);
+
+    renderHBars("chart-engaged", res.engagedByModule, {
+      colorFor: function (d) { return catColor(DATA.modules.indexOf(d.module)); },
+      label: function (d) { return d.module; },
+      value: function (d) { return d.minutes; },
+      formatValue: function (v) { return fmtHours(v); },
+      tooltipTitle: function (d) { return d.module; },
+      tooltipSub: function (d) { return fmtHours(d.minutes) + " engaged"; }
+    });
+
+    renderHBars("chart-horizon", res.timeHorizon, {
+      label: function (d) { return d.value; },
+      value: function (d) { return d.count; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.value; },
+      tooltipSub: function (d) { return fmt(d.count) + " selections"; }
+    });
+
+    renderHBars("chart-loa", res.levelOfAnalysis, {
+      colorFor: function (d) { return catColor(DATA.level_of_analysis_values.indexOf(d.value)); },
+      label: function (d) { return d.value; },
+      value: function (d) { return d.count; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.value; },
+      tooltipSub: function (d) { return fmt(d.count) + " selections"; }
+    });
+
+    renderHBars("chart-clicks", res.topClicks, {
+      label: function (d) { return d.title + '<span class="sub">' + d.value + "</span>"; },
+      value: function (d) { return d.count; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.title; },
+      tooltipSub: function (d) { return d.value + " &middot; " + fmt(d.count) + " clicks"; }
+    });
+
+    renderVBars("chart-sessionlen", res.sessionLenDist, {
+      colorFor: function (d, i) { return seqColor(i, DATA.bucket_labels.length); },
+      label: function (d) { return d.bucket; },
+      value: function (d) { return d.count; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.bucket; },
+      tooltipSub: function (d) { return fmt(d.count) + " sessions"; }
+    });
+
+    function hourLabel(h) { return h === 0 ? "12a" : h < 12 ? h + "a" : h === 12 ? "12p" : (h - 12) + "p"; }
+    renderVBars("chart-hour", res.hourOfDay, {
+      sparseLabels: true,
+      colorFor: function (d) { return seqColor(d.hour, 24); },
+      label: function (d) { return hourLabel(d.hour); },
+      value: function (d) { return d.events; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return hourLabel(d.hour); },
+      tooltipSub: function (d) { return fmt(d.events) + " events"; }
+    });
+
+    renderHBars("chart-portfolios", res.topPortfolios, {
+      naMessage: "Not applicable when a single portfolio is selected.",
+      label: function (d) { return d.portfolio; },
+      value: function (d) { return d.minutes; },
+      formatValue: function (v) { return fmtHours(v); },
+      tooltipTitle: function (d) { return d.portfolio; },
+      tooltipSub: function (d) { return fmtHours(d.minutes) + " &middot; " + fmt(d.sessions) + " sessions"; }
+    });
+
+    renderVBars("chart-dow", res.dayOfWeek, {
+      colorFor: function (d) { return catColor(DATA.dow_order.indexOf(d.day)); },
+      label: function (d) { return d.day.slice(0, 3); },
+      value: function (d) { return d.sessions; },
+      formatValue: function (v) { return fmt(v); },
+      tooltipTitle: function (d) { return d.day; },
+      tooltipSub: function (d) { return fmt(d.sessions) + " sessions &middot; " + fmt(d.events) + " events"; }
+    });
+
+    renderConcentrationCurve("chart-concentration", "concentration-note", res.concentration);
+
+    renderHeatmap(res.heatmap);
+  }
+
+  // ================= Filter bar wiring =================
+
+  var minDate = DATA.dates[0], maxDate = DATA.dates[N - 1];
+  var fromInput = document.getElementById("date-from");
+  var toInput = document.getElementById("date-to");
+  var resetBtn = document.getElementById("filter-reset");
+  var statusEl = document.getElementById("filter-status");
+  var portfolioSelect = document.getElementById("portfolio-select");
+
+  [fromInput, toInput].forEach(function (inp) {
+    inp.min = minDate; inp.max = maxDate;
+  });
+  fromInput.value = minDate;
+  toInput.value = maxDate;
+
+  (function populatePortfolioSelect() {
+    var allOpt = document.createElement("option");
+    allOpt.value = "";
+    allOpt.textContent = "All portfolios (" + DATA.portfolios.length + ")";
+    portfolioSelect.appendChild(allOpt);
+    DATA.portfolios.map(function (name, idx) { return { name: name, idx: idx }; })
+      .sort(function (a, b) { return a.name.localeCompare(b.name); })
+      .forEach(function (p) {
+        var opt = document.createElement("option");
+        opt.value = String(p.idx);
+        opt.textContent = p.name;
+        portfolioSelect.appendChild(opt);
+      });
+  })();
+
+  document.getElementById("coverage-range").textContent = fmtDate(minDate) + " – " + fmtDate(maxDate);
+  document.getElementById("coverage-days").textContent = N + " days tracked (all-time)";
+
+  function dateToIdx(iso, clampToNearest) {
+    // dataset has no gaps, so a direct lookup covers the normal case;
+    // clamp defensively in case a browser allows an out-of-range value.
+    var idx = DATA.dates.indexOf(iso);
+    if (idx !== -1) return idx;
+    if (iso < minDate) return 0;
+    if (iso > maxDate) return N - 1;
+    return clampToNearest ? 0 : -1;
+  }
+
+  function applyFilter() {
+    var fromIso = fromInput.value || minDate;
+    var toIso = toInput.value || maxDate;
+    if (fromIso > toIso) { var t = fromIso; fromIso = toIso; toIso = t; fromInput.value = fromIso; toInput.value = toIso; }
+
+    var fromIdx = dateToIdx(fromIso, true);
+    var toIdx = dateToIdx(toIso, true);
+    var portfolioIdx = portfolioSelect.value === "" ? null : parseInt(portfolioSelect.value, 10);
+
+    var res = computeAll(fromIdx, toIdx, portfolioIdx);
+    renderAll(res);
+
+    var isFullRange = fromIso === minDate && toIso === maxDate;
+    resetBtn.disabled = isFullRange;
+    var dayLabel = isFullRange
+      ? "Showing <strong>full range</strong> &middot; " + N + " days"
+      : "Showing <strong>" + (toIdx - fromIdx + 1) + " of " + N + "</strong> days";
+    statusEl.innerHTML = portfolioIdx === null
+      ? dayLabel
+      : dayLabel + " &middot; portfolio: <strong>" + res.scopedPortfolio + "</strong>";
+  }
+
+  fromInput.addEventListener("change", applyFilter);
+  toInput.addEventListener("change", applyFilter);
+  portfolioSelect.addEventListener("change", applyFilter);
+  resetBtn.addEventListener("click", function () {
+    fromInput.value = minDate;
+    toInput.value = maxDate;
+    applyFilter();
+  });
+
+  applyFilter();
+})();
+</script>

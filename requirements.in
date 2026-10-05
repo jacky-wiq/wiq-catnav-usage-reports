@@ -1,0 +1,6 @@
+# Only needed for CATNAV_BACKEND=api (Cloud Run / service account). The local CLI path
+# uses the standard library only. All four are official Google / PSF packages on PyPI.
+google-cloud-bigquery>=3.46,<4   # BigQuery queries via Application Default Credentials
+google-cloud-storage>=3.16,<4    # upload finished pages to a private bucket
+google-auth>=2.60,<3             # ADC + AuthorizedSession for the Sheets REST API
+requests>=2.34,<3                # HTTP transport required by google-auth's AuthorizedSession
