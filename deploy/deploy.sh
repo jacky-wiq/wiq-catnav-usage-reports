@@ -20,6 +20,11 @@ SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 
 cd "$(dirname "$0")/.."
 
+echo "== 0. Turn on the Google Cloud services this setup uses (no-op if already on)"
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com \
+  cloudscheduler.googleapis.com bigquery.googleapis.com storage.googleapis.com \
+  sheets.googleapis.com iam.googleapis.com --project "$PROJECT_ID"
+
 echo "== 1. Service account the job runs as"
 gcloud iam service-accounts create "$SA_NAME" --project "$PROJECT_ID" \
   --display-name "CatNav Compass/Adoption weekly refresh" || echo "(already exists)"
