@@ -5,7 +5,7 @@ Two internal usage reports for the CatNav Category Manager toolset, rebuilt from
 | Page | Answers | Built by |
 |---|---|---|
 | **CatNav Compass** | *How* CatNav is used: sessions, modules, alerts, AI commentary, intent, engagement, by portfolio and date range | `aggregate_daily.py` → `catnav_compass_template.html` |
-| **CatNav Adoption** | *Who* in the Commercial Team uses it: % of CMs/ACMs ever / recently active, lapsed, never, fresh vs other categories | `adoption.py` → `catnav_adoption_template.html` |
+| **CatNav Adoption** | *Who* in the Commercial Team uses it: % of CMs, ACMs, MMs, CDs and Directors ever / recently active, lapsed, never, by role and fresh vs other categories | `adoption.py` → `catnav_adoption_template.html` |
 
 Both are single, self-contained HTML files (data embedded, no server, no API calls), so they open in any browser.
 
@@ -53,7 +53,7 @@ The `api` backend needs `pip install --require-hashes -r requirements.txt`. The 
 | BQ `prod.dim_pseudo_users` | **Probabilistic** `user_id` → name/email inference (not a login binding). About 30% of ids never resolve; that's expected | Compass "Unique users, identified" |
 | BQ `prod.usage_by_user` | Weekly login activity per real user email + role + portfolio, since May 2024 | Compass "Who's using this portfolio"; all of Adoption |
 | Sheet **CatNav Users and Portfolios** (`1cRp90r5…`) | `AU Portfolios` + `AU Users` tabs: the master portfolio ↔ owner mapping | Cleaning `user_portfolio` in Compass |
-| Sheet **Commercial Team directory** (`1EVhLqKY…`) | Every CM/ACM by category section | Adoption roster |
+| Sheet **MASTER Commercial Contact List** (`1EVhLqKY…`) | `Commercial Team` tab: every CM/ACM by category section. `Summary Tab ` (trailing space!): MMs, CDs and Directors | Adoption roster |
 
 **Don't use** the GCS export `gs://ga_user_tracking_catnav/fact_user_events`. It's a periodic copy that has silently stalled for weeks before. Always query BigQuery directly (the script does).
 
@@ -64,11 +64,12 @@ BigQuery data lags real time by roughly 4 days. That's normal upstream processin
 ## Definitions & known problems
 
 ### Adoption page
-- **Roster**: every named row in the Commercial Team sheet whose Title is CM (incl. `CM: Mon-Wed`/`Wed-Fri`) or ACM (incl. `ACM/CA`). `TBC` rows are skipped. Two people hold both roles and count once (`CM+ACM`).
+- **Roster**: CMs/ACMs = every named row in the `Commercial Team` tab whose Title is CM (incl. `CM: Mon-Wed`/`Wed-Fri`) or ACM (incl. `ACM/CA`); `TBC` rows are skipped. MMs, CDs and Directors = the leader cells on the `Summary Tab ` whose title starts with *Merchandise Manager*, *Commercial Director* or *Director*. *Head of* / *General Manager* roles are deliberately out of scope. Leaders the directory lists without an email are matched by name to CatNav's AU Users sheet; any still unmatched are printed as a WARNING and excluded. Someone listed under two roles counts once (e.g. `CM+MM`).
+- **Out of scope by design**: CAs, Buyers / Assistant Buyers and support roles. These are admin and other functions; including them would change the headline rate a lot.
 - **Ever adopted**: the person's email has any row in `usage_by_user`.
 - **Active**: active in any week ending on or after *(latest week in the data − 90 days)*. The latest week can be the current, part-complete week.
 - **Lapsed** = adopted but not active. **Never** = no rows at all.
-- **Fresh** = everyone from the **"Seafood 1"** section to the end of the sheet (Seafood, Meat incl. Poultry, Fruit & Veg). Uses strict section boundaries on purpose: an earlier keyword-matching version wrongly counted Deli smallgoods, Deli salads, Frozen veg/fish and Ice cream (40 instead of 32 people). If the sheet is reordered, check `FRESH_FIRST_SECTION` in `adoption.py`.
+- **Fresh** = for CMs/ACMs, everyone from the **"Seafood 1"** section to the end of the sheet (Seafood, Meat incl. Poultry, Fruit & Veg). Uses strict section boundaries on purpose: an earlier keyword-matching version wrongly counted Deli smallgoods, Deli salads, Frozen veg/fish and Ice cream (40 instead of 32 people). If the sheet is reordered, check `FRESH_FIRST_SECTION` in `adoption.py`. For MMs/CDs/Directors, it's their title's area matching Meat / Seafood / Poultry / Fruit / Veg / Fresh (`FRESH_LEADER_AREA_RE` in `roster_lib.py`). "Chilled Meats & Occasions" (deli) deliberately doesn't match.
 - **Leave notes** (mat leave etc.) are hand-maintained in `leave_notes.json` (`{"Person Name": "mat leave"}`). It is git-ignored because it's HR information. Locally it sits next to the data files; for the Cloud Run job, upload it to `gs://<BUCKET>/config/leave_notes.json`. Update it when people go on or come back from leave. If the file is missing, the page still builds, just without the notes.
 - Matching is by email, so someone using a different email in CatNav than in the sheet shows as "never". Check this before chasing a "never" person.
 

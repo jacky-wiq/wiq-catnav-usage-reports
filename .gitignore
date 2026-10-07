@@ -6,6 +6,7 @@ dim_pseudo_users.json
 au_users.json
 au_portfolios.json
 commercial_team_raw.txt
+commercial_summary_raw.json
 daily_data.json
 # HR info (who is on leave)
 leave_notes.json

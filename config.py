@@ -50,6 +50,7 @@ AU_USERS_PATH = os.path.join(DATA_DIR, "au_users.json")
 USAGE_BY_USER_PATH = os.path.join(DATA_DIR, "usage_by_user_raw.json")
 PSEUDO_USERS_PATH = os.path.join(DATA_DIR, "dim_pseudo_users.json")
 COMMERCIAL_TEAM_PATH = os.path.join(DATA_DIR, "commercial_team_raw.txt")
+COMMERCIAL_SUMMARY_PATH = os.path.join(DATA_DIR, "commercial_summary_raw.json")
 # Hand-maintained leave annotations for the Adoption page (HR info: git-ignored).
 # Locally it sits in DATA_DIR; on Cloud Run it's fetched from gs://$CATNAV_GCS_BUCKET/config/leave_notes.json.
 LEAVE_NOTES_PATH = os.path.join(DATA_DIR, "leave_notes.json")

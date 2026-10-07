@@ -18,6 +18,12 @@
     --cm-bg:     #eff4ff;
     --acm-hue:   #7c3aed;
     --acm-bg:    #f3f0ff;
+    --mm-hue:    #0e7490;
+    --mm-bg:     #ecfeff;
+    --cd-hue:    #be185d;
+    --cd-bg:     #fdf2f8;
+    --dir-hue:   #475569;
+    --dir-bg:    #eef1f5;
     --track:     #e2e8f0;
   }
   @media (prefers-color-scheme: dark) {
@@ -37,6 +43,12 @@
       --cm-bg:     #0e1f40;
       --acm-hue:   #a78bfa;
       --acm-bg:    #1a1238;
+      --mm-hue:    #22d3ee;
+      --mm-bg:     #0b2a33;
+      --cd-hue:    #f472b6;
+      --cd-bg:     #2e0f20;
+      --dir-hue:   #a5b4c8;
+      --dir-bg:    #1c2533;
       --track:     #1e2d40;
     }
   }
@@ -56,6 +68,12 @@
     --cm-bg:     #0e1f40;
     --acm-hue:   #a78bfa;
     --acm-bg:    #1a1238;
+    --mm-hue:    #22d3ee;
+    --mm-bg:     #0b2a33;
+    --cd-hue:    #f472b6;
+    --cd-bg:     #2e0f20;
+    --dir-hue:   #a5b4c8;
+    --dir-bg:    #1c2533;
     --track:     #1e2d40;
   }
 
@@ -163,7 +181,7 @@
   }
 
   /* Role breakdown */
-  .role-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .role-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
   @media (max-width: 500px) { .role-grid { grid-template-columns: 1fr; } }
   .role-card {
     background: var(--surface);
@@ -173,10 +191,16 @@
   }
   .role-card.cm  { border-top: 3px solid var(--cm-hue); }
   .role-card.acm { border-top: 3px solid var(--acm-hue); }
+  .role-card.mm  { border-top: 3px solid var(--mm-hue); }
+  .role-card.cd  { border-top: 3px solid var(--cd-hue); }
+  .role-card.dir { border-top: 3px solid var(--dir-hue); }
   .role-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
   .role-name { font-weight: 600; font-size: 13px; }
   .role-card.cm  .role-name { color: var(--cm-hue); }
   .role-card.acm .role-name { color: var(--acm-hue); }
+  .role-card.mm  .role-name { color: var(--mm-hue); }
+  .role-card.cd  .role-name { color: var(--cd-hue); }
+  .role-card.dir .role-name { color: var(--dir-hue); }
   .role-pct { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .role-rows { display: flex; flex-direction: column; gap: 5px; margin-top: 8px; }
   .role-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
@@ -283,6 +307,9 @@
   }
   .badge-cm  { background: var(--cm-bg);  color: var(--cm-hue); }
   .badge-acm { background: var(--acm-bg); color: var(--acm-hue); }
+  .badge-mm  { background: var(--mm-bg);  color: var(--mm-hue); }
+  .badge-cd  { background: var(--cd-bg);  color: var(--cd-hue); }
+  .badge-dir { background: var(--dir-bg); color: var(--dir-hue); }
   .info-name { font-size: 13px; flex: 1; min-width: 0; }
   .info-meta { font-size: 11px; color: var(--muted); white-space: nowrap; }
 
@@ -353,9 +380,13 @@ function fmtDate(d) {
   return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][+m-1]+" "+dd.replace(/^0/,"")+" "+y;
 }
 
+const ROLE_CSS = {CM: "cm", ACM: "acm", MM: "mm", CD: "cd", Director: "dir"};
+
 function roleBadge(r) {
-  if (r === "CM+ACM") return '<span class="badge badge-cm" style="margin-right:2px">CM</span><span class="badge badge-acm">ACM</span>';
-  return r === "CM" ? '<span class="badge badge-cm">CM</span>' : '<span class="badge badge-acm">ACM</span>';
+  // One badge per role held, e.g. "CM+MM". Roles come from a fixed list, never free text.
+  return r.split("+").map((x, i, all) =>
+    `<span class="badge badge-${ROLE_CSS[x] || "dir"}"${i < all.length - 1 ? ' style="margin-right:2px"' : ''}>${x}</span>`
+  ).join("");
 }
 
 function statusChip(s) {

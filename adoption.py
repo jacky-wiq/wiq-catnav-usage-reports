@@ -25,9 +25,15 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import config
 import sources
-from roster_lib import load_sheet_rows, parse_roster
+from roster_lib import ROLE_ORDER, load_sheet_rows, parse_leadership, parse_roster
 
 SHEET_RANGE = "Commercial Team!A1:I450"
+# Leadership (MMs, CDs, Directors) lives on the Summary tab — note the trailing space in its name.
+SUMMARY_RANGE = "'Summary Tab '!A1:D46"
+
+ROLE_LABELS = {"CM": "Category Managers", "ACM": "Asst Category Managers", "MM": "Merchandise Managers",
+               "CD": "Commercial Directors", "Director": "Directors"}
+ROLE_CSS = {"CM": "cm", "ACM": "acm", "MM": "mm", "CD": "cd", "Director": "dir"}
 SHEET_PATH = config.COMMERCIAL_TEAM_PATH
 USAGE_PATH = config.USAGE_BY_USER_PATH
 TEMPLATE_PATH = config.ADOPTION_TEMPLATE_PATH
@@ -55,9 +61,21 @@ def load_leave_notes():
 
 
 def pull_sheet():
-    values = sources.sheet_values(config.COMMERCIAL_TEAM_SHEET_ID, SHEET_RANGE)
-    with open(SHEET_PATH, "w") as f:
-        json.dump(values, f)
+    for range_, path in ((SHEET_RANGE, SHEET_PATH), (SUMMARY_RANGE, config.COMMERCIAL_SUMMARY_PATH)):
+        values = sources.sheet_values(config.COMMERCIAL_TEAM_SHEET_ID, range_)
+        with open(path, "w") as f:
+            json.dump(values, f)
+
+
+def load_catnav_user_emails():
+    """{lower-cased name: email} from CatNav's AU Users sheet — fills leaders the directory lists without an email."""
+    try:
+        with open(config.AU_USERS_PATH) as f:
+            rows = json.load(f)["values"]
+    except FileNotFoundError:
+        return {}
+    email_col = rows[0].index("user_email")
+    return {r[0].strip().lower(): r[email_col].strip() for r in rows[1:] if len(r) > email_col and r[0].strip()}
 
 
 def today_sydney():
@@ -93,10 +111,11 @@ def counts(people):
 
 
 def badge(role):
-    if role == "CM+ACM":
-        return '<span class="badge badge-cm" style="margin-right:2px">CM</span><span class="badge badge-acm">ACM</span>'
-    cls = "badge-cm" if role == "CM" else "badge-acm"
-    return f'<span class="badge {cls}">{role}</span>'
+    """One badge per role held, e.g. "CM+MM" -> two badges."""
+    parts = role.split("+")
+    return "".join(
+        f'<span class="badge badge-{ROLE_CSS[r]}"{" style=\"margin-right:2px\"" if i < len(parts) - 1 else ""}>{r}</span>'
+        for i, r in enumerate(parts))
 
 
 def esc(s):
@@ -107,6 +126,10 @@ def build():
     LEAVE_NOTES = load_leave_notes()
     rows = load_sheet_rows(SHEET_PATH)
     roster = parse_roster(rows)
+    roster, unresolved_leaders = parse_leadership(load_sheet_rows(config.COMMERCIAL_SUMMARY_PATH),
+                                                  load_catnav_user_emails(), roster)
+    if unresolved_leaders:
+        print(f"WARNING: no email found for {len(unresolved_leaders)} leader(s), excluded: {unresolved_leaders}")
     fresh_start = next(i for i, r in enumerate(rows) if r and r[0].strip().startswith(FRESH_FIRST_SECTION))
     fresh_keys = set(parse_roster(rows[fresh_start:]))
 
@@ -129,18 +152,19 @@ def build():
     for key, p in roster.items():
         s = stats.get(key)
         status = "never" if not s else ("fresh" if s["last"] >= cutoff else "lapsed")
-        people.append({**p, "key": key, "status": status, "is_fresh": key in fresh_keys,
+        people.append({**p, "key": key, "status": status, "is_fresh": key in fresh_keys or p.get("is_fresh_leader", False),
                        **(s or {"weeks": 0, "days": 0, "last": ""})})
 
     has_role = lambda p, role: role in p["role"].split("+")
     all_c = counts(people)
-    cm_c = counts([p for p in people if has_role(p, "CM")])
-    acm_c = counts([p for p in people if has_role(p, "ACM")])
-    n_both = sum(1 for p in people if p["role"] == "CM+ACM")
+    role_c = {r: counts([p for p in people if has_role(p, r)]) for r in ROLE_ORDER}
+    role_c = {r: c for r, c in role_c.items() if c["n"]}
+    n_multi = sum(1 for p in people if "+" in p["role"])
+    roster_mix = " · ".join(f"{c['n']} {r}s" for r, c in role_c.items())
     fresh_people = [p for p in people if p["is_fresh"]]
     other_people = [p for p in people if not p["is_fresh"]]
 
-    print(f"Roster {all_c['n']} ({cm_c['n']} CMs, {acm_c['n']} ACMs, {n_both} both); usage through {max_week}; cutoff {cutoff}")
+    print(f"Roster {all_c['n']} ({roster_mix}; {n_multi} hold 2 roles); usage through {max_week}; cutoff {cutoff}")
     print(f"Ever {all_c['ever']} ({pct(all_c['ever'], all_c['n'])}), active {all_c['fresh']}, lapsed {all_c['lapsed']}, never {all_c['never']}")
 
     cutoff_label = fmt_date(cutoff)
@@ -177,7 +201,7 @@ def build():
     <div class="kpi">
       <div class="kpi-label">Roster</div>
       <div class="kpi-val">{all_c['n']}</div>
-      <div class="kpi-sub">{cm_c['n']} CMs · {acm_c['n']} ACMs</div>
+      <div class="kpi-sub">{roster_mix}</div>
     </div>
   </div>
 
@@ -218,8 +242,7 @@ def build():
   <div class="section">
     <div class="section-title">By role</div>
     <div class="role-grid">
-{role_card("cm", "Category Managers", cm_c)}
-{role_card("acm", "Asst Category Managers", acm_c)}
+{chr(10).join(role_card(ROLE_CSS[r], ROLE_LABELS[r], c) for r, c in role_c.items())}
     </div>
   </div>
 ''')
@@ -227,8 +250,10 @@ def build():
     def split_card(cls, eyebrow, subtitle, group, active_colour, active_cls, never_cls):
         c = counts(group)
         sub_rows = []
-        for role in ("CM", "ACM"):
+        for role in ROLE_ORDER:
             rc = counts([p for p in group if has_role(p, role)])
+            if not rc["n"]:
+                continue
             sub_rows.append(f'''          <div class="split-sub-row">
             {badge(role)}
             <span class="split-sub-count">{rc['n']} people</span>
@@ -238,7 +263,7 @@ def build():
         sub = "\n".join(sub_rows)
         return f'''      <div class="split-card {cls}">
         <div class="split-eyebrow">{eyebrow}</div>
-        <div class="split-subtitle">{subtitle} &nbsp;({c['n']} CMs &amp; ACMs)</div>
+        <div class="split-subtitle">{subtitle} &nbsp;({c['n']} people)</div>
         <div class="split-big">{short_pct(c['ever'], c['n'])}</div>
         <div class="split-bigsub">ever adopted &nbsp;·&nbsp; {c['ever']} of {c['n']}</div>
         <div class="split-bar">
@@ -314,8 +339,7 @@ def build():
         <label for="role-filter">Role</label>
         <select id="role-filter" onchange="renderTable()">
           <option value="">All</option>
-          <option value="CM">CM</option>
-          <option value="ACM">ACM</option>
+{chr(10).join(f'          <option value="{r}">{r}</option>' for r in role_c)}
         </select>
         <label for="fresh-filter">Status</label>
         <select id="fresh-filter" onchange="renderTable()">
@@ -345,7 +369,7 @@ def build():
   </div>
 
   <footer>
-    90-day recency cutoff: {cutoff_label} &nbsp;·&nbsp; Roster: {cm_c['n']} CMs, {acm_c['n']} ACMs, {n_both} hold both roles = {all_c['n']} unique individuals &nbsp;·&nbsp; Fresh = Seafood, Meat (incl. Poultry) and Fruit &amp; Veg sections of the directory &nbsp;·&nbsp; Data: <code>gcp-wow-wiq-kscope-prod.prod.usage_by_user</code>
+    90-day recency cutoff: {cutoff_label} &nbsp;·&nbsp; Roster: {roster_mix}; {n_multi} hold two roles = {all_c['n']} unique individuals (CMs/ACMs from the Commercial Team tab; MMs, CDs &amp; Directors from the Summary tab) &nbsp;·&nbsp; Fresh = Seafood, Meat (incl. Poultry) and Fruit &amp; Veg — directory sections for CMs/ACMs, area in the title for leaders &nbsp;·&nbsp; Data: <code>gcp-wow-wiq-kscope-prod.prod.usage_by_user</code>
   </footer>
 ''')
 
