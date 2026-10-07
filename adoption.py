@@ -224,7 +224,10 @@ def build():
         return f'''      <div class="role-card {cls}">
         <div class="role-head">
           <span class="role-name">{label} ({c['n']})</span>
-          <span class="role-pct">{pct(c['ever'], c['n'])} ever</span>
+        </div>
+        <div class="role-stats">
+          <div class="role-stat"><span class="role-stat-val act">{pct(c['fresh'], c['n'])}</span><span class="role-stat-label">Active last 90 days</span></div>
+          <div class="role-stat"><span class="role-stat-val">{pct(c['ever'], c['n'])}</span><span class="role-stat-label">Ever adopted</span></div>
         </div>
         <div class="role-mini-bar">
           <span style="flex:{c['fresh']};background:var(--accent)"></span>
